@@ -1,0 +1,79 @@
+#
+#  Executes target seeking random walk inside a
+#  confining boundary. 
+#
+#  Following parameters can be specified:
+#    1- Shape, size, and location of boundary
+#    2- Shape, size, and location of target
+#    3- Random step type (continuous angle or on a grid) 
+#    4 -Starting location for random walk 
+#
+import sys, random
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+import matplotlib.pyplot as plt
+import shapes3d_class as shapes
+import randwalk3d_class as rw3d
+
+random.seed(None)        # Seed generator, None => system clock
+#   Sets maximum number of steps in each random walk    
+max_steps = 50000
+#
+#  Set boundary shape and location
+#  Choices are defined in shapes3d_class:  
+#         Sphere( (x,y,z), radius)   
+#         Rectangle3d( (x,y,z), width,depth, height)
+#         Ellipsoid( (x,y,z) , a , b, c) 
+#  where (x,y, z) is center of shape  and a,b,c are axes of ellipsoid
+#
+boundary  = shapes.Ellipsoid((0.0, 0.0, 0.0), 20, 40, 20) 
+#boundary  = shapes.Rectangle3d((0.0, 0.0,0.0), 20, 40, 20)
+#boundary  = shapes.Sphere((0.0, 0.0, 0.0), 30)
+#
+#  Set target shape and initial location (see shape choices above)
+#
+target_loc = (10.0, 10.0, 10.0)
+#target = shapes.Rectangle3d(target_loc, 4 , 4, 4) 
+target = shapes.Sphere(target_loc, 3)
+# 
+#  Select random function (rand_direct or rand_grid)
+#
+rand_function = rw3d.rand_direct
+#    rand_function = rw3d.rand_grid
+#
+#  Assign starting location for walks and move_target_flag
+# start_loc   = (0.0,0.0,0.0)
+start_loc   = (0.0,0.0,0.0)
+move_target_flag = False
+#
+#   Test to see if target specified is inside the boundary
+#
+target_loc = target.get_location()
+if not boundary.check_inside(target_loc):
+    print " Sorry, your target is not inside the current boundary "
+    print " Current target  : " +str(target)
+    print " Current boundary: " +str(boundary)
+    print " Change target location or boundary size to correct problem"
+    sys.exit(0) 
+#
+#  Perform walk and plot results
+# 
+rand_walk = rw3d.RandomWalk3d(start_loc, max_steps, rand_function, boundary, target, move_target_flag)
+rand_walk.conduct_walk() 
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.set_aspect("equal","datalim")
+rand_walk.plot_walk(ax,'r-')
+#          
+#  Draw boundary and target on graph and set size of graph based on boundary (xlim,ylim)
+#
+boundary.draw_shape(ax,'b',.2)    
+target.draw_shape(ax,'k',.2)
+boundary.set_plot_size(ax)
+#
+#  Set plot title , legend, and grid 
+#
+ax.set_title('3D walks with start loc = ' + str(start_loc) + '\n and target loc = ' + str(target_loc))
+plt.show() 
+
